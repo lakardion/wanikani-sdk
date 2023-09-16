@@ -1,0 +1,29 @@
+name: CI
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: "pnpm"
+      - name: 📦 Install packages
+        run: pnpm install --frozen-lockfile
+      - name: 🆎 TypeCheck
+        run: pnpm lint
+      - name: 🧪 Run tests
+        run: pnpm test
+      - name: 🏗️ Build
+        run: pnpm build
