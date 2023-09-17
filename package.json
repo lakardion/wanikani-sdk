@@ -22,5 +22,10 @@
     "tsup": "^7.2.0",
     "typescript": "^5.2.2",
     "vitest": "^0.34.4"
+  },
+  "dependencies": {
+    "@thinknimble/tn-models": "2.1.0",
+    "axios": "1.5.0",
+    "zod": "3.22.2"
   }
 }
