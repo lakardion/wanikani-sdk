@@ -2,14 +2,14 @@ lockfileVersion: '6.0'
 
 dependencies:
   '@thinknimble/tn-models':
-    specifier: 2.1.0
-    version: 2.1.0(axios@1.5.0)(zod@3.22.2)
+    specifier: 2.1.1
+    version: 2.1.1(axios@1.5.0)(zod@3.21.4)
   axios:
     specifier: 1.5.0
     version: 1.5.0
   zod:
-    specifier: 3.22.2
-    version: 3.22.2
+    specifier: 3.21.4
+    version: 3.21.4
 
 devDependencies:
   '@changesets/cli':
@@ -523,15 +523,15 @@ packages:
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
     dev: true
 
-  /@thinknimble/tn-models@2.1.0(axios@1.5.0)(zod@3.22.2):
-    resolution: {integrity: sha512-r0YCiNfyidwSfcPQUgE2JcuH1c4EkFsPzfGRwdAjqy6nV5Hkq2aoMGsDW9m6xiVN99wFxHnWPyFiUNT3GP1A9w==}
+  /@thinknimble/tn-models@2.1.1(axios@1.5.0)(zod@3.21.4):
+    resolution: {integrity: sha512-6k6Bi3ln5Y7JRfPa14N1FPuhb7ypPjiP+IwpZtuja8vD8BkqBVL4cRT+VeQ8FSV/RdKcLqZ/VH4GFzvqEWgy7w==}
     peerDependencies:
       axios: '>1.0.0'
       zod: '>=3.21.4'
     dependencies:
       '@thinknimble/tn-utils': 2.0.1
       axios: 1.5.0
-      zod: 3.22.2
+      zod: 3.21.4
     dev: false
 
   /@thinknimble/tn-utils@2.0.1:
@@ -3035,6 +3035,6 @@ packages:
     engines: {node: '>=12.20'}
     dev: true
 
-  /zod@3.22.2:
-    resolution: {integrity: sha512-wvWkphh5WQsJbVk1tbx1l1Ly4yg+XecD+Mq280uBGt9wa5BKSWf4Mhp6GmrkPixhMxmabYY7RbzlwVP32pbGCg==}
+  /zod@3.21.4:
+    resolution: {integrity: sha512-m46AKbrzKVzOzs/DZgVnG5H55N1sv1M8qZU3A8RIKbs3mrACDNeIOeilDymVb2HdmP8uwshOCF4uJ8uM9rCqJw==}
     dev: false

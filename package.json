@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:dev": "vitest",
     "ci": "pnpm run lint && pnpm run test && pnpm run build",
-    "release": "pnpm run ci && changeset publish"
+    "release": "pnpm run ci && changeset publish",
+    "dev:watch": "tsup src/index.ts --format cjs,esm --dts --watch"
   },
   "keywords": [],
   "author": "",
@@ -24,8 +25,8 @@
     "vitest": "^0.34.4"
   },
   "dependencies": {
-    "@thinknimble/tn-models": "2.1.0",
+    "@thinknimble/tn-models": "2.1.1",
     "axios": "1.5.0",
-    "zod": "3.22.2"
+    "zod": "3.21.4"
   }
 }
