@@ -1,6 +1,6 @@
 {
   "name": "wanikani-sdk",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Typed, runtime-validated TypeScript SDK for the WaniKani v2 API.",
   "keywords": [
     "japanese",
