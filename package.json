@@ -1,12 +1,28 @@
 {
   "name": "wanikani-sdk",
   "version": "0.0.1",
-  "description": "",
-  "keywords": [],
+  "description": "Typed, runtime-validated TypeScript SDK for the WaniKani v2 API.",
+  "keywords": [
+    "japanese",
+    "kanji",
+    "sdk",
+    "srs",
+    "valibot",
+    "wanikani"
+  ],
+  "homepage": "https://github.com/lakardion/wanikani-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/lakardion/wanikani-sdk/issues"
+  },
   "license": "ISC",
-  "author": "",
+  "author": "Damian Lucero",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lakardion/wanikani-sdk.git"
+  },
   "files": [
-    "dist"
+    "dist",
+    "CHANGELOG.md"
   ],
   "type": "module",
   "main": "dist/index.cjs",

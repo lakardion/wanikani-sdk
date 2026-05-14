@@ -1,4 +1,4 @@
-# @lakardion/wanikani-sdk
+# wanikani-sdk
 
 ## 0.0.1
 
