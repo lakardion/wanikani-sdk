@@ -1,8 +1,14 @@
 # wanikani-sdk
 
+[![npm version](https://img.shields.io/npm/v/wanikani-sdk.svg)](https://www.npmjs.com/package/wanikani-sdk)
+[![CI](https://github.com/lakardion/wanikani-sdk/actions/workflows/main.yml/badge.svg)](https://github.com/lakardion/wanikani-sdk/actions/workflows/main.yml)
+[![license](https://img.shields.io/npm/l/wanikani-sdk.svg)](./LICENSE)
+
 Typed, runtime-validated TypeScript SDK for the [WaniKani v2 API](https://docs.api.wanikani.com/20170710/).
 
 Schemas are defined with [valibot](https://valibot.dev) and serve as the single source of truth for both compile-time types and runtime validation of inputs and outputs. Includes a built-in 60 req/min rate limiter and a strict one-retry policy on transient failures to keep API keys out of trouble.
+
+> **Status:** API is pre-1.0; minor versions may introduce breaking changes until 1.0.0.
 
 ## Install
 
@@ -82,7 +88,13 @@ Every resource hangs off a configured `WanikaniClient` instance.
 | [`spacedRepetitionSystems`](#spacedrepetitionsystems) | `.get(id)`, `.list(...)`, `.paginate(...)` | —                                  |
 | [`voiceActors`](#voiceactors)                         | `.get(id)`, `.list(...)`, `.paginate(...)` | —                                  |
 
-SRS-mutating writes (`POST /reviews`, `PUT /assignments/:id/start`) are intentionally not exposed yet to avoid accidentally advancing review state on real accounts.
+### Roadmap
+
+Known deferrals — these will land in later 0.x releases:
+
+- `POST /reviews` (submit a review) and `PUT /assignments/:id/start` — intentionally not exposed yet to avoid accidentally advancing SRS state on real accounts.
+- Per-resource `If-Modified-Since` / `If-None-Match` arguments. Today the transport supports conditional requests end-to-end but the resource methods don't yet take the headers as a parameter; see [Conditional requests](#conditional-requests).
+- A built-in caching layer on top of the conditional-request plumbing.
 
 ### `user`
 
