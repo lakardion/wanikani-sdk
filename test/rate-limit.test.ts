@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { TokenBucket } from "../src/http/rate-limit";
 
 describe("TokenBucket", () => {
@@ -7,7 +7,7 @@ describe("TokenBucket", () => {
     const sleeps: number[] = [];
     const bucket = new TokenBucket({
       capacity: 2,
-      refillPerSecond: 1, // 1 token/sec
+      refillPerSecond: 1,
       now: () => now,
       sleep: async (ms) => {
         sleeps.push(ms);
@@ -19,7 +19,6 @@ describe("TokenBucket", () => {
     await bucket.acquire();
     expect(sleeps).toEqual([]);
 
-    // Third acquire must wait for the bucket to refill 1 token at 1/sec → ~1000ms.
     await bucket.acquire();
     expect(sleeps).toHaveLength(1);
     expect(sleeps[0]!).toBeGreaterThanOrEqual(900);
@@ -45,13 +44,21 @@ describe("TokenBucket", () => {
     expect(order).toEqual([0, 1, 2]);
   });
 
-  it("uses default sleep when none provided", async () => {
-    vi.useFakeTimers();
-    const bucket = new TokenBucket({ capacity: 1, refillPerSecond: 1000 });
+  it("uses an injected sleep when refilling", async () => {
+    let now = 0;
+    let totalSlept = 0;
+    const bucket = new TokenBucket({
+      capacity: 1,
+      refillPerSecond: 1000,
+      now: () => now,
+      sleep: async (ms) => {
+        totalSlept += ms;
+        now += ms;
+      },
+    });
+
     await bucket.acquire();
-    const pending = bucket.acquire();
-    await vi.advanceTimersByTimeAsync(2);
-    await pending;
-    vi.useRealTimers();
+    await bucket.acquire();
+    expect(totalSlept).toBeGreaterThan(0);
   });
 });

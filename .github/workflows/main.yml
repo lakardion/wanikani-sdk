@@ -11,21 +11,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          version: 10
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 20.x
-          cache: "pnpm"
+          bun-version: latest
       - name: 📦 Install packages
-        run: pnpm install --frozen-lockfile
+        run: bun install --frozen-lockfile
       - name: 💅 Format check
-        run: pnpm format:check
+        run: bun run format:check
       - name: 🆎 Lint + TypeCheck
-        run: pnpm lint
+        run: bun run lint
       - name: 🧪 Run tests
-        run: pnpm test
+        run: bun test
       - name: 🏗️ Build
-        run: pnpm build
+        run: bun run build

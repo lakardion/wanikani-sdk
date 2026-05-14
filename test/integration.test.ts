@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { WanikaniClient } from "../src";
 import { WanikaniApiError, WanikaniValidationError } from "../src/http/errors";
 
@@ -13,7 +13,6 @@ describe.skipIf(!apiKey)("integration: real WaniKani API", () => {
       expect(typeof me.data.username).toBe("string");
       expect(typeof me.data.level).toBe("number");
     } catch (err) {
-      // Allow the known hibernating-account case; anything else is a real failure.
       if (err instanceof WanikaniApiError && err.status === 403) {
         expect(err.message).toMatch(/hibernating|forbidden/i);
         return;

@@ -1,8 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, mock } from "bun:test";
 import { Transport } from "../src/http/transport";
 import { NullRateLimiter } from "../src/http/rate-limit";
 import { WanikaniNotModified, WanikaniRateLimitError } from "../src/http/errors";
-import { mockFetch, mockResponse } from "./helpers";
+import { mockFetch, mockRejectingFetch, mockResponse } from "./helpers";
 
 function makeTransport(
   fetchImpl: typeof fetch,
@@ -29,8 +29,9 @@ describe("Transport.request", () => {
     expect(result).toEqual({ ok: true });
     const [url, init] = fetchMock.mock.calls[0]!;
     expect(url).toBe("https://api.wanikani.test/v2/user");
-    expect((init.headers as Record<string, string>).Authorization).toBe("Bearer test-key");
-    expect((init.headers as Record<string, string>)["Wanikani-Revision"]).toBe("20170710");
+    const headers = init!.headers as Record<string, string>;
+    expect(headers.Authorization).toBe("Bearer test-key");
+    expect(headers["Wanikani-Revision"]).toBe("20170710");
   });
 
   it("serializes array query params as comma-delimited and skips empties", async () => {
@@ -70,8 +71,8 @@ describe("Transport.request", () => {
   });
 
   it("retries exactly once on 429 then surfaces WanikaniRateLimitError", async () => {
-    const now = vi.fn(() => 1_000_000_000_000);
-    const sleep = vi.fn(async () => undefined);
+    const now = mock(() => 1_000_000_000_000);
+    const sleep = mock(async () => undefined);
     const fetchMock = mockFetch(
       mockResponse({
         status: 429,
@@ -94,7 +95,7 @@ describe("Transport.request", () => {
   });
 
   it("retries exactly once on 429 and returns body if retry succeeds", async () => {
-    const sleep = vi.fn(async () => undefined);
+    const sleep = mock(async () => undefined);
     const fetchMock = mockFetch(
       mockResponse({
         status: 429,
@@ -114,7 +115,7 @@ describe("Transport.request", () => {
   });
 
   it("retries once on 503 then gives up", async () => {
-    const sleep = vi.fn(async () => undefined);
+    const sleep = mock(async () => undefined);
     const fetchMock = mockFetch(
       mockResponse({ status: 503, body: { error: "Service unavailable", code: 503 } }),
       mockResponse({ status: 503, body: { error: "Still down", code: 503 } }),
@@ -134,17 +135,15 @@ describe("Transport.request", () => {
     );
     const transport = makeTransport(fetchMock as unknown as typeof fetch);
 
-    await expect(transport.request({ path: "user" })).rejects.toMatchObject({
-      status: 500,
-    });
+    await expect(transport.request({ path: "user" })).rejects.toMatchObject({ status: 500 });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("retries once on network error then surfaces it", async () => {
-    const fetchMock = vi
-      .fn()
-      .mockRejectedValueOnce(new TypeError("network down"))
-      .mockRejectedValueOnce(new TypeError("network still down"));
+    const fetchMock = mockRejectingFetch(
+      new TypeError("network down"),
+      new TypeError("network still down"),
+    );
     const transport = makeTransport(fetchMock as unknown as typeof fetch);
 
     await expect(transport.request({ path: "user" })).rejects.toThrow(/network still down/);

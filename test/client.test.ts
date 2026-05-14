@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, mock } from "bun:test";
 import { WanikaniClient } from "../src";
 import { WanikaniError, WanikaniValidationError } from "../src/http/errors";
 import { mockFetch, mockResponse } from "./helpers";
@@ -37,7 +37,9 @@ describe("WanikaniClient", () => {
     const original = process.env.WANIKANI_API_KEY;
     delete process.env.WANIKANI_API_KEY;
     try {
-      expect(() => new WanikaniClient({ fetch: vi.fn() as never })).toThrow(WanikaniError);
+      expect(() => new WanikaniClient({ fetch: mock(() => undefined) as never })).toThrow(
+        WanikaniError,
+      );
     } finally {
       if (original !== undefined) process.env.WANIKANI_API_KEY = original;
     }

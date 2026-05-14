@@ -1,0 +1,2 @@
+[test]
+# bun auto-loads .env files; no preload needed.
