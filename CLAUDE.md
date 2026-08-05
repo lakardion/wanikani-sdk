@@ -14,7 +14,6 @@ Toolchain is **bun** (CI pins `latest` via `oven-sh/setup-bun@v2`). No pnpm, no 
 - `bun run format` / `bun run format:check` — `oxfmt --write` / `oxfmt --check`
 - `bun run build` — `bun run build:js` (bun bundler → cjs + esm) then `bun run build:types` (tsc → .d.ts under `dist/`)
 - `bun run ci` — `format:check + lint + test + build`; what CI runs
-- `bun run release` — invoked by the publish workflow only. **Do not run locally** (see Publishing).
 
 ## Architecture
 
@@ -26,37 +25,30 @@ Tests live under `test/`. Mocks come from `bun:test`'s `mock()`; the `mockFetch`
 
 ## Publishing — strict process
 
-**Do not publish from a local machine.** All releases go through the wired CI flow in `.github/workflows/publish.yml`. Running `bun publish`, `npm publish`, `bun x changeset publish`, or `bun run release` locally bypasses the review checkpoints below and is treated as a bug, not a shortcut.
+**Do not publish from a local machine.** All releases go through `.github/workflows/release.yml`, which runs **semantic-release** on every push to `main`. Running `bun publish`, `npm publish`, or `npx semantic-release` (outside `--dry-run`) locally bypasses the review checkpoints and is treated as a bug, not a shortcut.
 
-The correct flow per release:
+There is no manual release step. The flow per release:
 
-1. **In a feature branch**, after the code change is ready, run:
-   ```sh
-   bun x changeset
-   ```
-   Pick the bump type (patch/minor/major) and write a user-facing summary. This creates `.changeset/<slug>.md`.
-2. **Commit the changeset** along with the code change and open a normal PR. Reviewers see both the change and the proposed release note.
-3. **Merge the PR to `main`.** This triggers `.github/workflows/publish.yml`. With a pending changeset present, the `changesets/action@v1` step opens a second PR titled **"Version Packages"** that bumps `package.json` `version`, regenerates `CHANGELOG.md`, and deletes the consumed `.changeset/<slug>.md`.
-4. **Wait for the "Version Packages" PR to appear** (usually < 1 minute after merge). Review the diff — it should only be the version + CHANGELOG.
-5. **Merge the "Version Packages" PR.** The workflow runs again; this time there are no pending changesets and the version is unpublished, so it executes `bun run release` → `changeset publish` → uploads the tarball to npm.
+1. **Open a PR with a conventional title.** Commit messages are the versioning — see the bump table in `CONTRIBUTING.md` (`fix`/`perf` → patch, `feat` → minor, `!` or `BREAKING CHANGE` → major, anything else → no release).
+2. **Squash-merge the PR to `main`.** The PR title becomes the commit message, so retitle before merging if it doesn't follow the convention.
+3. **The release workflow does the rest**: runs the gates (`bun run ci`), computes the next version from commits since the last `v*` tag, prepends to `CHANGELOG.md`, commits the bump (`chore(release): X.Y.Z [skip ci]`), tags `vX.Y.Z`, opens a GitHub Release, and publishes to npm with provenance.
 
-Never edit `package.json`'s `version` field by hand. Never edit `CHANGELOG.md` by hand. Changesets owns both.
+Never edit `package.json`'s `version` field by hand. Never edit `CHANGELOG.md` by hand. semantic-release owns both.
 
-### Prerequisites for the CI flow
+### Auth: npm trusted publishing (OIDC)
 
-- **`NPM_TOKEN`** repository secret must exist (Settings → Secrets → Actions). It must be a **granular access token** scoped to `wanikani-sdk` with **"2FA required" set to OFF** — npm publish over HTTP cannot satisfy a passkey/WebAuthn 2FA challenge, so the token must bypass 2FA. Create the token at `https://www.npmjs.com/settings/<user>/tokens`.
-- `.changeset/config.json` already has `access: "public"` — the publish step needs no extra flags.
+There is **no `NPM_TOKEN`** anywhere — `@semantic-release/npm` authenticates via the GitHub Actions OIDC token, matched against the trusted-publisher registration on npmjs.com (package → Settings → Publishing access). The registration names the exact workflow path `.github/workflows/release.yml`; **renaming the workflow file breaks publish auth**.
 
 ### When the CI flow is blocked
 
 If something is genuinely wrong (broken action, registry outage, urgent rollback) and the CI publish can't proceed:
 
-- Diagnose and fix the action / token / registry issue first.
-- A manual local publish is the **last resort**, requires the user's explicit go-ahead in the conversation, and the same git artifacts (commit with version bump + CHANGELOG + matching git tag pushed to origin) must end up on `main` afterward to match what was shipped to npm.
+- Diagnose and fix the action / trusted-publisher registration / registry issue first.
+- A manual local publish is the **last resort**, requires the user's explicit go-ahead in the conversation, and the same git artifacts (commit with version bump + CHANGELOG + matching `v*` git tag pushed to origin) must end up on `main` afterward to match what was shipped to npm.
 
 ## CI
 
-`.github/workflows/main.yml` runs `format:check → lint → test → build` on PRs to any branch and pushes to `main`. Same bun setup as the publish workflow. No separate Node setup step.
+`.github/workflows/main.yml` runs `format:check → lint → test → build` on PRs to any branch and pushes to `main`. Same bun setup as the release workflow.
 
 ## Agent skills
 
