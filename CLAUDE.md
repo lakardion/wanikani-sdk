@@ -57,3 +57,17 @@ If something is genuinely wrong (broken action, registry outage, urgent rollback
 ## CI
 
 `.github/workflows/main.yml` runs `format:check → lint → test → build` on PRs to any branch and pushes to `main`. Same bun setup as the publish workflow. No separate Node setup step.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in this repo's GitHub Issues, managed via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default five-role vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context — one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
