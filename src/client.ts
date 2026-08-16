@@ -1,7 +1,7 @@
 import { Transport } from "./http/transport";
 import { NullRateLimiter, TokenBucket, type RateLimiter } from "./http/rate-limit";
 import { WanikaniError } from "./http/errors";
-import type { ValidatePolicy } from "./resources/validate";
+import type { UnknownFieldsCallback, ValidatePolicy } from "./resources/validate";
 
 import { createUserResource } from "./resources/user";
 import { createSummaryResource } from "./resources/summary";
@@ -21,6 +21,7 @@ export interface WanikaniClientOptions {
   fetch?: typeof globalThis.fetch;
   rateLimit?: { rpm: number } | false;
   validate?: ValidatePolicy;
+  onUnknownFields?: UnknownFieldsCallback;
 }
 
 const DEFAULT_REVISION = "20170710";
@@ -55,7 +56,10 @@ export class WanikaniClient {
 
     const baseUrl = ensureTrailingSlash(options.baseUrl ?? DEFAULT_BASE_URL);
     const rateLimiter = makeRateLimiter(options.rateLimit);
-    const validate = { policy: options.validate ?? ("both" as ValidatePolicy) };
+    const validate = {
+      policy: options.validate ?? ("both" as ValidatePolicy),
+      onUnknownFields: options.onUnknownFields,
+    };
 
     const transport = new Transport({
       apiKey,

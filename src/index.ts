@@ -8,7 +8,7 @@ export {
   WanikaniNotModified,
 } from "./http/errors";
 
-export type { ValidatePolicy } from "./resources/validate";
+export type { UnknownFieldsCallback, ValidatePolicy } from "./resources/validate";
 
 export type { User, UserEnvelope, UpdateUserInput } from "./schemas/user";
 export type { Summary, SummaryEnvelope } from "./schemas/summary";
