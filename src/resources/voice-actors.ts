@@ -1,4 +1,10 @@
 import type { Transport } from "../http/transport";
+import {
+  conditionalHeaders,
+  wrapConditional,
+  type CacheValidators,
+  type ConditionalResponse,
+} from "../http/conditional";
 import { paginate } from "../http/paginate";
 import {
   ListVoiceActorsInputSchema,
@@ -11,27 +17,47 @@ import {
 import { type ValidateContext, validateInput, validateOutput } from "./validate";
 
 export function createVoiceActorsResource(transport: Transport, validate: ValidateContext) {
-  return {
-    async get(id: number): Promise<VoiceActorEnvelope> {
-      const raw = await transport.request<unknown>({ path: `voice_actors/${id}` });
-      return validateOutput(validate, VoiceActorEnvelopeSchema, raw);
-    },
-    async list(input?: ListVoiceActorsInput): Promise<VoiceActorCollection> {
-      const parsed = input ? validateInput(validate, ListVoiceActorsInputSchema, input) : undefined;
-      const raw = await transport.request<unknown>({
-        path: "voice_actors",
-        query: parsed as never,
-      });
-      return validateOutput(validate, VoiceActorCollectionSchema, raw);
-    },
-    paginate(input?: ListVoiceActorsInput) {
-      const parsed = input ? validateInput(validate, ListVoiceActorsInputSchema, input) : undefined;
-      return paginate(
-        transport,
-        "voice_actors",
-        parsed as Record<string, unknown> | undefined,
-        (raw) => validateOutput(validate, VoiceActorCollectionSchema, raw),
-      );
-    },
-  };
+  async function get(id: number): Promise<VoiceActorEnvelope>;
+  async function get(
+    id: number,
+    validators: CacheValidators,
+  ): Promise<ConditionalResponse<VoiceActorEnvelope>>;
+  async function get(id: number, validators?: CacheValidators) {
+    const res = await transport.request<unknown>({
+      path: `voice_actors/${id}`,
+      ...conditionalHeaders(validators),
+    });
+    return wrapConditional(res, validators, (raw) =>
+      validateOutput(validate, VoiceActorEnvelopeSchema, raw),
+    );
+  }
+
+  async function list(input?: ListVoiceActorsInput): Promise<VoiceActorCollection>;
+  async function list(
+    input: ListVoiceActorsInput | undefined,
+    validators: CacheValidators,
+  ): Promise<ConditionalResponse<VoiceActorCollection>>;
+  async function list(input?: ListVoiceActorsInput, validators?: CacheValidators) {
+    const parsed = input ? validateInput(validate, ListVoiceActorsInputSchema, input) : undefined;
+    const res = await transport.request<unknown>({
+      path: "voice_actors",
+      query: parsed as never,
+      ...conditionalHeaders(validators),
+    });
+    return wrapConditional(res, validators, (raw) =>
+      validateOutput(validate, VoiceActorCollectionSchema, raw),
+    );
+  }
+
+  function paginateVoiceActors(input?: ListVoiceActorsInput) {
+    const parsed = input ? validateInput(validate, ListVoiceActorsInputSchema, input) : undefined;
+    return paginate(
+      transport,
+      "voice_actors",
+      parsed as Record<string, unknown> | undefined,
+      (raw) => validateOutput(validate, VoiceActorCollectionSchema, raw),
+    );
+  }
+
+  return { get, list, paginate: paginateVoiceActors };
 }

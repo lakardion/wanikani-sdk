@@ -48,6 +48,12 @@ export class WanikaniValidationError extends WanikaniError {
   }
 }
 
+/**
+ * @deprecated The SDK no longer throws this: a 304 is returned as a
+ * `ConditionalResponse` (`{ notModified: true, etag }`) from resource methods
+ * called with `CacheValidators` (ADR-0004). Kept exported for compatibility;
+ * removal waits for a major release.
+ */
 export class WanikaniNotModified extends WanikaniError {
   constructor(public readonly url: string) {
     super(`WaniKani 304 Not Modified at ${url}`);

@@ -1,9 +1,4 @@
-import {
-  WanikaniApiError,
-  WanikaniError,
-  WanikaniNotModified,
-  WanikaniRateLimitError,
-} from "./errors";
+import { WanikaniApiError, WanikaniError, WanikaniRateLimitError } from "./errors";
 import type { RateLimiter } from "./rate-limit";
 
 export interface TransportOptions {
@@ -30,6 +25,16 @@ export type QueryParams = Record<
   string | number | boolean | readonly (string | number)[] | null | undefined
 >;
 
+/**
+ * Outcome of a single request: either a fresh body plus the response's cache
+ * validators (`ETag` / `Last-Modified`, `null` when absent), or a 304 — the
+ * caller's cached copy is still good. The resource layer decides whether to
+ * wrap this in a public `ConditionalResponse` or unwrap the bare body.
+ */
+export type TransportResult<T> =
+  | { notModified: false; body: T; etag: string | null; lastModified: string | null }
+  | { notModified: true; etag: string | null };
+
 const SERVICE_UNAVAILABLE_BACKOFF_MS = 2000;
 
 export class Transport {
@@ -43,13 +48,20 @@ export class Transport {
     this.now = options.now ?? (() => Date.now());
   }
 
-  async request<T>(opts: RequestOptions): Promise<T> {
+  async request<T>(opts: RequestOptions): Promise<TransportResult<T>> {
     const url = this.buildUrl(opts.path, opts.query);
     const init = this.buildInit(opts);
 
     const first = await this.attempt(url, init);
-    if (first.kind === "ok") return first.body as T;
-    if (first.kind === "not_modified") throw new WanikaniNotModified(url);
+    if (first.kind === "ok") {
+      return {
+        notModified: false,
+        body: first.body as T,
+        etag: first.etag,
+        lastModified: first.lastModified,
+      };
+    }
+    if (first.kind === "not_modified") return { notModified: true, etag: first.etag };
 
     // Hard one-retry cap. Only retry transient signals.
     if (first.kind === "retryable") {
@@ -61,8 +73,15 @@ export class Transport {
       }
 
       const second = await this.attempt(url, init);
-      if (second.kind === "ok") return second.body as T;
-      if (second.kind === "not_modified") throw new WanikaniNotModified(url);
+      if (second.kind === "ok") {
+        return {
+          notModified: false,
+          body: second.body as T,
+          etag: second.etag,
+          lastModified: second.lastModified,
+        };
+      }
+      if (second.kind === "not_modified") return { notModified: true, etag: second.etag };
       throw toError(second, url);
     }
 
@@ -83,10 +102,17 @@ export class Transport {
       };
     }
 
-    if (response.status === 304) return { kind: "not_modified" };
+    if (response.status === 304) {
+      return { kind: "not_modified", etag: response.headers.get("ETag") };
+    }
     if (response.status >= 200 && response.status < 300) {
       const body = (await response.json()) as unknown;
-      return { kind: "ok", body };
+      return {
+        kind: "ok",
+        body,
+        etag: response.headers.get("ETag"),
+        lastModified: response.headers.get("Last-Modified"),
+      };
     }
 
     if (response.status === 429) {
@@ -149,8 +175,8 @@ export class Transport {
 }
 
 type AttemptResult =
-  | { kind: "ok"; body: unknown }
-  | { kind: "not_modified" }
+  | { kind: "ok"; body: unknown; etag: string | null; lastModified: string | null }
+  | { kind: "not_modified"; etag: string | null }
   | {
       kind: "retryable";
       reason: "rate_limit";
