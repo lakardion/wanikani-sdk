@@ -1,9 +1,8 @@
 # [0.3.0](https://github.com/lakardion/wanikani-sdk/compare/v0.2.0...v0.3.0) (2026-08-05)
 
-
 ### Features
 
-* **release:** replace changesets with semantic-release + OIDC trusted publishing ([#5](https://github.com/lakardion/wanikani-sdk/issues/5)) ([c65a1bb](https://github.com/lakardion/wanikani-sdk/commit/c65a1bb4a27ae003a1fbdb6497c0cd87c5bcb97e))
+- **release:** replace changesets with semantic-release + OIDC trusted publishing ([#5](https://github.com/lakardion/wanikani-sdk/issues/5)) ([c65a1bb](https://github.com/lakardion/wanikani-sdk/commit/c65a1bb4a27ae003a1fbdb6497c0cd87c5bcb97e))
 
 # wanikani-sdk
 
