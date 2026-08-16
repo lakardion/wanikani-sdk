@@ -1,23 +1,23 @@
 import * as v from "valibot";
 import { NullableTimestamp, TimestampSchema } from "./common";
 
-export const SummaryDataSchema = v.object({
+export const SummaryDataSchema = v.looseObject({
   lessons: v.array(
-    v.object({
+    v.looseObject({
       available_at: TimestampSchema,
       subject_ids: v.array(v.number()),
     }),
   ),
   next_reviews_at: NullableTimestamp,
   reviews: v.array(
-    v.object({
+    v.looseObject({
       available_at: TimestampSchema,
       subject_ids: v.array(v.number()),
     }),
   ),
 });
 
-export const SummaryEnvelopeSchema = v.object({
+export const SummaryEnvelopeSchema = v.looseObject({
   object: v.literal("report"),
   url: v.string(),
   data_updated_at: NullableTimestamp,

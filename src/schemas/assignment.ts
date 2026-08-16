@@ -2,7 +2,7 @@ import * as v from "valibot";
 import { NullableTimestamp, TimestampSchema, collection, envelope } from "./common";
 import { SubjectTypeSchema } from "./subject";
 
-export const AssignmentDataSchema = v.object({
+export const AssignmentDataSchema = v.looseObject({
   available_at: NullableTimestamp,
   burned_at: NullableTimestamp,
   created_at: TimestampSchema,

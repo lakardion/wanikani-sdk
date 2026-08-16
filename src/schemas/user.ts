@@ -1,14 +1,14 @@
 import * as v from "valibot";
 import { NullableTimestamp, TimestampSchema } from "./common";
 
-export const SubscriptionSchema = v.object({
+export const SubscriptionSchema = v.looseObject({
   active: v.boolean(),
   max_level_granted: v.number(),
   period_ends_at: v.nullable(TimestampSchema),
   type: v.picklist(["free", "recurring", "lifetime", "unknown"]),
 });
 
-export const UserPreferencesSchema = v.object({
+export const UserPreferencesSchema = v.looseObject({
   default_voice_actor_id: v.number(),
   extra_study_autoplay_audio: v.boolean(),
   lessons_autoplay_audio: v.boolean(),
@@ -23,7 +23,7 @@ export const UserPreferencesSchema = v.object({
   reviews_presentation_order: v.optional(v.picklist(["shuffled", "lower_levels_first"])),
 });
 
-export const UserDataSchema = v.object({
+export const UserDataSchema = v.looseObject({
   id: v.string(),
   username: v.string(),
   level: v.number(),
@@ -34,7 +34,7 @@ export const UserDataSchema = v.object({
   preferences: UserPreferencesSchema,
 });
 
-export const UserEnvelopeSchema = v.object({
+export const UserEnvelopeSchema = v.looseObject({
   object: v.literal("user"),
   url: v.string(),
   data_updated_at: NullableTimestamp,
@@ -44,7 +44,9 @@ export const UserEnvelopeSchema = v.object({
 export type User = v.InferOutput<typeof UserDataSchema>;
 export type UserEnvelope = v.InferOutput<typeof UserEnvelopeSchema>;
 
+// Input stays strict (v.object): unknown keys are stripped from what WE send,
+// unlike responses where looseObject passes them through (ADR-0002).
 export const UpdateUserInputSchema = v.object({
-  preferences: v.partial(UserPreferencesSchema),
+  preferences: v.partial(v.object(UserPreferencesSchema.entries)),
 });
 export type UpdateUserInput = v.InferInput<typeof UpdateUserInputSchema>;

@@ -4,37 +4,46 @@ import { NullableTimestamp, TimestampSchema } from "./common";
 export const SubjectTypeSchema = v.picklist(["radical", "kanji", "vocabulary", "kana_vocabulary"]);
 export type SubjectType = v.InferOutput<typeof SubjectTypeSchema>;
 
-const MeaningSchema = v.object({
+const MeaningSchema = v.looseObject({
   meaning: v.string(),
   primary: v.boolean(),
   accepted_answer: v.boolean(),
 });
 
-const AuxiliaryMeaningSchema = v.object({
+const AuxiliaryMeaningSchema = v.looseObject({
   meaning: v.string(),
   type: v.picklist(["whitelist", "blacklist"]),
 });
 
-const ReadingSchema = v.object({
+const ReadingSchema = v.looseObject({
   reading: v.string(),
   primary: v.boolean(),
   accepted_answer: v.boolean(),
   type: v.optional(v.picklist(["kunyomi", "nanori", "onyomi"])),
 });
 
-const CharacterImageSchema = v.object({
+const CharacterImageSchema = v.looseObject({
   url: v.string(),
   content_type: v.string(),
-  metadata: v.record(v.string(), v.unknown()),
+  metadata: v.looseObject({
+    inline_styles: v.boolean(),
+  }),
 });
 
-const PronunciationAudioSchema = v.object({
+const PronunciationAudioSchema = v.looseObject({
   url: v.string(),
   content_type: v.string(),
-  metadata: v.record(v.string(), v.unknown()),
+  metadata: v.looseObject({
+    gender: v.string(),
+    source_id: v.number(),
+    pronunciation: v.string(),
+    voice_actor_id: v.number(),
+    voice_actor_name: v.string(),
+    voice_description: v.string(),
+  }),
 });
 
-const SubjectCommonSchema = v.object({
+const SubjectCommonSchema = v.looseObject({
   auxiliary_meanings: v.array(AuxiliaryMeaningSchema),
   created_at: TimestampSchema,
   document_url: v.string(),
@@ -47,14 +56,14 @@ const SubjectCommonSchema = v.object({
   spaced_repetition_system_id: v.number(),
 });
 
-export const RadicalDataSchema = v.object({
+export const RadicalDataSchema = v.looseObject({
   ...SubjectCommonSchema.entries,
   amalgamation_subject_ids: v.array(v.number()),
   characters: v.nullable(v.string()),
   character_images: v.array(CharacterImageSchema),
 });
 
-export const KanjiDataSchema = v.object({
+export const KanjiDataSchema = v.looseObject({
   ...SubjectCommonSchema.entries,
   amalgamation_subject_ids: v.array(v.number()),
   characters: v.string(),
@@ -66,21 +75,21 @@ export const KanjiDataSchema = v.object({
   visually_similar_subject_ids: v.array(v.number()),
 });
 
-export const VocabularyDataSchema = v.object({
+export const VocabularyDataSchema = v.looseObject({
   ...SubjectCommonSchema.entries,
   characters: v.string(),
   component_subject_ids: v.array(v.number()),
-  context_sentences: v.array(v.object({ en: v.string(), ja: v.string() })),
+  context_sentences: v.array(v.looseObject({ en: v.string(), ja: v.string() })),
   parts_of_speech: v.array(v.string()),
   pronunciation_audios: v.array(PronunciationAudioSchema),
   reading_mnemonic: v.string(),
   readings: v.array(ReadingSchema),
 });
 
-export const KanaVocabularyDataSchema = v.object({
+export const KanaVocabularyDataSchema = v.looseObject({
   ...SubjectCommonSchema.entries,
   characters: v.string(),
-  context_sentences: v.array(v.object({ en: v.string(), ja: v.string() })),
+  context_sentences: v.array(v.looseObject({ en: v.string(), ja: v.string() })),
   parts_of_speech: v.array(v.string()),
   pronunciation_audios: v.array(PronunciationAudioSchema),
 });
@@ -92,7 +101,7 @@ export const SubjectDataSchema = v.union([
   KanaVocabularyDataSchema,
 ]);
 
-export const SubjectEnvelopeSchema = v.object({
+export const SubjectEnvelopeSchema = v.looseObject({
   id: v.number(),
   object: SubjectTypeSchema,
   url: v.string(),
@@ -100,10 +109,10 @@ export const SubjectEnvelopeSchema = v.object({
   data: SubjectDataSchema,
 });
 
-export const SubjectCollectionSchema = v.object({
+export const SubjectCollectionSchema = v.looseObject({
   object: v.literal("collection"),
   url: v.string(),
-  pages: v.object({
+  pages: v.looseObject({
     next_url: v.nullable(v.string()),
     previous_url: v.nullable(v.string()),
     per_page: v.number(),

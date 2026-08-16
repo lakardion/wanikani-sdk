@@ -9,7 +9,7 @@ export function envelope<TObject extends string, TData extends v.GenericSchema>(
   object: TObject,
   data: TData,
 ) {
-  return v.object({
+  return v.looseObject({
     id: v.number(),
     object: v.literal(object),
     url: v.string(),
@@ -22,10 +22,10 @@ export function collection<TObject extends string, TItem extends v.GenericSchema
   itemObject: TObject,
   item: TItem,
 ) {
-  return v.object({
+  return v.looseObject({
     object: v.literal("collection"),
     url: v.string(),
-    pages: v.object({
+    pages: v.looseObject({
       next_url: v.nullable(v.string()),
       previous_url: v.nullable(v.string()),
       per_page: v.number(),
@@ -36,7 +36,7 @@ export function collection<TObject extends string, TItem extends v.GenericSchema
   });
 }
 
-export const ApiErrorSchema = v.object({
+export const ApiErrorSchema = v.looseObject({
   error: v.string(),
   code: v.number(),
 });

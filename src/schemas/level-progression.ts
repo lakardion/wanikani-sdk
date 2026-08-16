@@ -1,7 +1,7 @@
 import * as v from "valibot";
 import { NullableTimestamp, TimestampSchema, collection, envelope } from "./common";
 
-export const LevelProgressionDataSchema = v.object({
+export const LevelProgressionDataSchema = v.looseObject({
   abandoned_at: NullableTimestamp,
   completed_at: NullableTimestamp,
   created_at: TimestampSchema,

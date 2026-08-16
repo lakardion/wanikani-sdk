@@ -1,7 +1,7 @@
 import * as v from "valibot";
 import { TimestampSchema, collection, envelope } from "./common";
 
-export const ResetDataSchema = v.object({
+export const ResetDataSchema = v.looseObject({
   confirmed_at: v.nullable(TimestampSchema),
   created_at: TimestampSchema,
   original_level: v.number(),

@@ -101,6 +101,88 @@ describe("WanikaniClient", () => {
     });
   });
 
+  it("passes through unknown fields in API responses (ADR-0002)", async () => {
+    const fetchMock = mockFetch(
+      mockResponse({
+        body: {
+          ...userEnvelope,
+          data: {
+            ...userEnvelope.data,
+            future_api_field: "survives",
+            subscription: { ...userEnvelope.data.subscription, future_plan: "ultra" },
+          },
+        },
+      }),
+    );
+    const client = new WanikaniClient({
+      apiKey: "test-key",
+      fetch: fetchMock as never,
+      rateLimit: false,
+    });
+
+    const me = await client.user.get();
+
+    expect(me.data["future_api_field"]).toBe("survives");
+    expect(me.data.subscription["future_plan"]).toBe("ultra");
+  });
+
+  it("types structured pronunciation_audios metadata and keeps unknown metadata keys", async () => {
+    const vocabulary = {
+      id: 1,
+      object: "vocabulary",
+      url: "https://api.wanikani.test/v2/subjects/1",
+      data_updated_at: "2024-01-01T00:00:00.000000Z",
+      data: {
+        auxiliary_meanings: [],
+        created_at: "2024-01-01T00:00:00.000000Z",
+        document_url: "https://www.wanikani.com/vocabulary/x",
+        hidden_at: null,
+        lesson_position: 0,
+        level: 1,
+        meaning_mnemonic: "Test",
+        meanings: [{ meaning: "One", primary: true, accepted_answer: true }],
+        slug: "vocab-1",
+        spaced_repetition_system_id: 1,
+        characters: "一",
+        component_subject_ids: [1],
+        context_sentences: [],
+        parts_of_speech: ["numeral"],
+        reading_mnemonic: "Test",
+        readings: [{ reading: "いち", primary: true, accepted_answer: true }],
+        pronunciation_audios: [
+          {
+            url: "https://cdn.wanikani.test/audio/1.mp3",
+            content_type: "audio/webm",
+            metadata: {
+              gender: "female",
+              source_id: 42,
+              pronunciation: "いち",
+              voice_actor_id: 2,
+              voice_actor_name: "Kyoko",
+              voice_description: "Tokyo accent",
+              future_metadata_key: 7,
+            },
+          },
+        ],
+      },
+    };
+    const fetchMock = mockFetch(mockResponse({ body: vocabulary }));
+    const client = new WanikaniClient({
+      apiKey: "test-key",
+      fetch: fetchMock as never,
+      rateLimit: false,
+    });
+
+    const subject = await client.subjects.get(1);
+    const data = subject.data as {
+      pronunciation_audios: { metadata: Record<string, unknown> }[];
+    };
+    const metadata = data.pronunciation_audios[0]!.metadata;
+    expect(metadata.voice_actor_name).toBe("Kyoko");
+    expect(metadata.source_id).toBe(42);
+    expect(metadata.future_metadata_key).toBe(7);
+  });
+
   it("paginates subjects across next_url cursors", async () => {
     const page1 = {
       object: "collection",
