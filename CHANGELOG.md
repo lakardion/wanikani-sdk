@@ -1,3 +1,11 @@
+# [0.4.0](https://github.com/lakardion/wanikani-sdk/compare/v0.3.0...v0.4.0) (2026-08-16)
+
+
+### Features
+
+* lossless schemas — looseObject passthrough + structured metadata ([#16](https://github.com/lakardion/wanikani-sdk/issues/16)) ([65200d2](https://github.com/lakardion/wanikani-sdk/commit/65200d20893e812699ee63730ecfb5289b05b612)), closes [#10](https://github.com/lakardion/wanikani-sdk/issues/10)
+* onUnknownFields option for detecting unknown API fields ([#17](https://github.com/lakardion/wanikani-sdk/issues/17)) ([aabdf58](https://github.com/lakardion/wanikani-sdk/commit/aabdf58effa6bde7bc7b7387d8fed9ab04ac9e6f)), closes [#14](https://github.com/lakardion/wanikani-sdk/issues/14)
+
 # [0.3.0](https://github.com/lakardion/wanikani-sdk/compare/v0.2.0...v0.3.0) (2026-08-05)
 
 ### Features
