@@ -12,7 +12,7 @@ The SDK is being built toward full coverage of the WaniKani API v2 (revision 201
 
 (The other two missing endpoints, `GET /reviews` and `GET /reviews/{id}`, are deprecated server-side: one always returns an empty collection, the other always 404s.)
 
-Both unimplemented endpoints **mutate the user's learning state on WaniKani**. The client app's model is the opposite: it *reads* WaniKani state (subjects learned, SRS stages, statistics) and layers its own LLM-generated lessons on top, keeping its own progress. It will not act onto WaniKani.
+Both unimplemented endpoints **mutate the user's learning state on WaniKani**. The client app's model is the opposite: it _reads_ WaniKani state (subjects learned, SRS stages, statistics) and layers its own LLM-generated lessons on top, keeping its own progress. It will not act onto WaniKani.
 
 ## Decision
 

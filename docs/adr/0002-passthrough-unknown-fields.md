@@ -14,8 +14,10 @@ Because `looseObject` does not report which fields were unknown, the validation 
 
 ```ts
 new WanikaniClient({
-  onUnknownFields: (path, fields) => { /* log, telemetry, throw — consumer's choice */ },
-})
+  onUnknownFields: (path, fields) => {
+    /* log, telemetry, throw — consumer's choice */
+  },
+});
 ```
 
 **Silent by default** — the SDK never writes to the consumer's console unprompted. Without the callback, unknown fields pass through quietly.
