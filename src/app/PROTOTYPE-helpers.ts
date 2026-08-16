@@ -31,10 +31,9 @@ import type { SubjectEnvelope, SubjectType } from "../schemas/subject";
 // ---------------------------------------------------------------------------
 
 /**
- * ⚡ NAMING: composite-tier filters are camelCase (`srsStages`), deliberately
- * unlike the resource tier's snake_case (`srs_stages`). Rationale: these are
- * not raw API params — they're a curated, JS-idiomatic surface, and the drift
- * signals the tier drift (ADR-0003). Alternative: snake_case for consistency.
+ * DECIDED (#8): camelCase on the composite tier, snake_case on the resource
+ * tier — the convention drift signals the tier drift (ADR-0003), and this is a
+ * TypeScript SDK.
  *
  * Every field here maps 1:1 to a server-side assignment query param.
  */
@@ -131,7 +130,7 @@ export interface SubjectProgress {
   studyMaterial: StudyMaterialEnvelope | null;
 }
 
-export interface SubjectProgressFilter {
+export interface SubjectProgressFilterBase {
   /** → subjects `ids`. The "get specific" escape hatch. */
   ids?: number[];
   /** → subjects `slugs` (e.g. `["suru", "life"]`). */
@@ -140,11 +139,18 @@ export interface SubjectProgressFilter {
   types?: SubjectType[];
   /** → subjects `levels` */
   levels?: number[];
-  /**
-   * ⚡ With NO fields set this is "every subject in WaniKani" (~9k, heavy).
-   * Allowed or forbidden? Sketch allows it; easy to require ≥1 field instead.
-   */
 }
+
+/** Requires at least one field of T to be present. */
+type AtLeastOne<T> = {
+  [K in keyof T]: Required<Pick<T, K>> & Partial<Omit<T, K>>;
+}[keyof T];
+
+/**
+ * DECIDED (#8): no fetch-all — at least one filter field is REQUIRED.
+ * `subjectProgress({})` and `subjectProgress()` are compile-time errors.
+ */
+export type SubjectProgressFilter = AtLeastOne<SubjectProgressFilterBase>;
 
 // ---------------------------------------------------------------------------
 // 5. levelStatus — current level standing + the kanji gate
@@ -212,7 +218,7 @@ export interface WanikaniApp {
   learnedSubjects(filter?: LearnedSubjectsFilter): Promise<LearnedSubject[]>;
   lessonQueue(filter?: LessonQueueFilter): Promise<LessonQueueItem[]>;
   reviewsDue(filter?: ReviewsDueFilter): Promise<ReviewDue[]>;
-  subjectProgress(filter?: SubjectProgressFilter): Promise<SubjectProgress[]>;
+  subjectProgress(filter: SubjectProgressFilter): Promise<SubjectProgress[]>;
   levelStatus(filter?: LevelStatusFilter): Promise<LevelStatus>;
   /**
    * ⚡ Return type is `Pick<SyncResult, "since" | "fetchedAt" | R>` — only the
