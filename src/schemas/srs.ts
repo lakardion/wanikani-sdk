@@ -1,7 +1,7 @@
 import * as v from "valibot";
 import { TimestampSchema, collection, envelope } from "./common";
 
-const StageSchema = v.object({
+const StageSchema = v.looseObject({
   interval: v.nullable(v.number()),
   interval_unit: v.nullable(
     v.picklist(["milliseconds", "seconds", "minutes", "hours", "days", "weeks"]),
@@ -9,7 +9,7 @@ const StageSchema = v.object({
   position: v.number(),
 });
 
-export const SpacedRepetitionSystemDataSchema = v.object({
+export const SpacedRepetitionSystemDataSchema = v.looseObject({
   burning_stage_position: v.number(),
   created_at: TimestampSchema,
   description: v.string(),

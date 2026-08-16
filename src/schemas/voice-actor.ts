@@ -1,7 +1,7 @@
 import * as v from "valibot";
 import { TimestampSchema, collection, envelope } from "./common";
 
-export const VoiceActorDataSchema = v.object({
+export const VoiceActorDataSchema = v.looseObject({
   created_at: TimestampSchema,
   description: v.string(),
   gender: v.picklist(["male", "female"]),
