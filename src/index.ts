@@ -5,7 +5,6 @@ export {
   WanikaniApiError,
   WanikaniRateLimitError,
   WanikaniValidationError,
-  WanikaniNotModified,
 } from "./http/errors";
 
 export type { CacheValidators, ConditionalResponse, Fresh, NotModified } from "./http/conditional";
