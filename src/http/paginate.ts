@@ -1,3 +1,4 @@
+import { unwrapBody } from "./conditional";
 import type { Transport } from "./transport";
 
 export interface PageEnvelope<T> {
@@ -12,17 +13,19 @@ export async function* paginate<TItem, TPage extends PageEnvelope<TItem>>(
   initialQuery: Record<string, unknown> | undefined,
   parsePage: (raw: unknown) => TPage,
 ): AsyncGenerator<TPage, void, void> {
-  let raw = await transport.request<unknown>({
-    path: initialPath,
-    query: initialQuery as never,
-  });
+  let raw = unwrapBody(
+    await transport.request<unknown>({
+      path: initialPath,
+      query: initialQuery as never,
+    }),
+  );
   let page = parsePage(raw);
   yield page;
 
   while (page.pages.next_url) {
     const nextUrl = new URL(page.pages.next_url);
     const path = `${nextUrl.pathname.replace(/^\/v2\//, "")}${nextUrl.search}`;
-    raw = await transport.request<unknown>({ path });
+    raw = unwrapBody(await transport.request<unknown>({ path }));
     page = parsePage(raw);
     yield page;
   }

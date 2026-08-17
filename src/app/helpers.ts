@@ -38,6 +38,7 @@
  * store the returned `fetchedAt` as the next `since`.
  */
 
+import { unwrapBody } from "../http/conditional";
 import { collectAll } from "../http/paginate";
 import type { Transport } from "../http/transport";
 import {
@@ -304,7 +305,7 @@ export function createWanikaniApp(transport: Transport, validate: ValidateContex
       let level = filter.level;
       if (level === undefined) {
         const raw = await transport.request<unknown>({ path: "user" });
-        level = validateOutput(validate, UserEnvelopeSchema, raw).data.level;
+        level = validateOutput(validate, UserEnvelopeSchema, unwrapBody(raw)).data.level;
       }
       const [progressions, kanji] = await Promise.all([
         collectAll<LevelProgressionEnvelope, LevelProgressionCollection>(

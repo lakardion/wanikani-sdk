@@ -262,22 +262,19 @@ for await (const page of client.assignments.paginate({ in_review: true })) {
 
 ## Conditional requests
 
-The transport sends `If-Modified-Since` / `If-None-Match` when you provide them, and translates a 304 response into a `WanikaniNotModified` error. ETag handling is plumbed end-to-end — what's missing from v0.1 is wiring through the per-resource methods. Caching is left to the consumer:
+Every `get`/`list` method accepts an optional trailing `CacheValidators` argument: `ifNoneMatch` (an ETag) and `ifModifiedSince` (a `Date` or raw `Last-Modified` string). Passing it switches the return type to `ConditionalResponse<T>` — a 200 gives you `{ notModified: false, data, etag, lastModified }`, a 304 gives you `{ notModified: true }`. You own the cache: store the validators alongside your data and echo them back next time. When both are sent, `If-None-Match` wins (per the API).
 
 ```ts
-import { WanikaniNotModified } from "wanikani-sdk";
+const res = await client.subjects.list({ types: ["kanji"] }, { ifNoneMatch: cached?.etag });
 
-try {
-  const fresh = await client.subjects.list({ updated_after: lastSyncedAt });
-  cache.write(fresh);
-} catch (err) {
-  if (err instanceof WanikaniNotModified) {
-    // Nothing changed since lastSyncedAt — keep using the cache.
-  } else throw err;
+if (res.notModified) {
+  // Nothing changed — keep using the cache; no body was transferred.
+} else {
+  cache.write(res.data, { etag: res.etag, lastModified: res.lastModified });
 }
 ```
 
-The `updated_after` query param is the v0.1-supported way to do incremental sync. Native `If-Modified-Since` per-resource is on the v0.2 roadmap.
+`paginate` is excluded from conditional support. For change detection on collections, prefer the `updated_after` filter — it returns only records changed since a timestamp, which is the API's recommended sync pattern.
 
 ## Errors
 
@@ -286,7 +283,6 @@ All errors extend `WanikaniError`:
 - `WanikaniApiError` — non-2xx HTTP response. Carries `status`, `code`, `url`.
 - `WanikaniRateLimitError` — 429 after the single allowed retry. Carries the `RateLimit-Reset` epoch as `resetAt: Date | null`.
 - `WanikaniValidationError` — request input or response payload failed valibot validation. Carries `direction: "input" | "output"` and the raw `issues` from valibot.
-- `WanikaniNotModified` — thrown on 304 from conditional requests.
 
 ```ts
 import { WanikaniApiError, WanikaniRateLimitError } from "wanikani-sdk";

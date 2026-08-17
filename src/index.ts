@@ -5,8 +5,9 @@ export {
   WanikaniApiError,
   WanikaniRateLimitError,
   WanikaniValidationError,
-  WanikaniNotModified,
 } from "./http/errors";
+
+export type { CacheValidators, ConditionalResponse, Fresh, NotModified } from "./http/conditional";
 
 export type { UnknownFieldsCallback, ValidatePolicy } from "./resources/validate";
 

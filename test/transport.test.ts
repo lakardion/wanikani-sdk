@@ -1,7 +1,7 @@
 import { describe, expect, it, mock } from "bun:test";
 import { Transport } from "../src/http/transport";
 import { NullRateLimiter } from "../src/http/rate-limit";
-import { WanikaniNotModified, WanikaniRateLimitError } from "../src/http/errors";
+import { WanikaniRateLimitError } from "../src/http/errors";
 import { mockFetch, mockRejectingFetch, mockResponse } from "./helpers";
 
 function makeTransport(
@@ -26,7 +26,12 @@ describe("Transport.request", () => {
 
     const result = await transport.request<{ ok: boolean }>({ path: "user" });
 
-    expect(result).toEqual({ ok: true });
+    expect(result).toEqual({
+      notModified: false,
+      body: { ok: true },
+      etag: null,
+      lastModified: null,
+    });
     const [url, init] = fetchMock.mock.calls[0]!;
     expect(url).toBe("https://api.wanikani.test/v2/user");
     const headers = init!.headers as Record<string, string>;
@@ -50,10 +55,51 @@ describe("Transport.request", () => {
     expect(url.searchParams.get("hidden")).toBe("false");
   });
 
-  it("throws WanikaniNotModified on 304", async () => {
+  it("captures ETag and Last-Modified from 2xx responses", async () => {
+    const fetchMock = mockFetch(
+      mockResponse({
+        body: { ok: true },
+        headers: { ETag: '"v1"', "Last-Modified": "Wed, 01 Jan 2024 00:00:00 GMT" },
+      }),
+    );
+    const transport = makeTransport(fetchMock as unknown as typeof fetch);
+
+    const result = await transport.request<{ ok: boolean }>({ path: "user" });
+
+    expect(result).toEqual({
+      notModified: false,
+      body: { ok: true },
+      etag: '"v1"',
+      lastModified: "Wed, 01 Jan 2024 00:00:00 GMT",
+    });
+  });
+
+  it("returns a not_modified result with the ETag on 304 without throwing", async () => {
+    const fetchMock = mockFetch(mockResponse({ status: 304, headers: { ETag: '"same"' } }));
+    const transport = makeTransport(fetchMock as unknown as typeof fetch);
+
+    const result = await transport.request({
+      path: "user",
+      ifNoneMatch: '"same"',
+    });
+
+    expect(result).toEqual({ notModified: true, etag: '"same"' });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("sends If-None-Match and If-Modified-Since headers when requested", async () => {
     const fetchMock = mockFetch(mockResponse({ status: 304 }));
     const transport = makeTransport(fetchMock as unknown as typeof fetch);
-    await expect(transport.request({ path: "user" })).rejects.toBeInstanceOf(WanikaniNotModified);
+
+    await transport.request({
+      path: "user",
+      ifNoneMatch: '"abc"',
+      ifModifiedSince: "Wed, 01 Jan 2024 00:00:00 GMT",
+    });
+
+    const headers = fetchMock.mock.calls[0]![1]!.headers as Record<string, string>;
+    expect(headers["If-None-Match"]).toBe('"abc"');
+    expect(headers["If-Modified-Since"]).toBe("Wed, 01 Jan 2024 00:00:00 GMT");
   });
 
   it("throws WanikaniApiError on deterministic 4xx without retrying", async () => {
@@ -110,7 +156,7 @@ describe("Transport.request", () => {
     });
 
     const result = await transport.request<{ ok: boolean }>({ path: "user" });
-    expect(result).toEqual({ ok: true });
+    expect(result).toMatchObject({ notModified: false, body: { ok: true } });
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 

@@ -48,13 +48,6 @@ export class WanikaniValidationError extends WanikaniError {
   }
 }
 
-export class WanikaniNotModified extends WanikaniError {
-  constructor(public readonly url: string) {
-    super(`WaniKani 304 Not Modified at ${url}`);
-    this.name = "WanikaniNotModified";
-  }
-}
-
 function pathToString(path: BaseIssue<unknown>["path"]): string {
   if (!path || path.length === 0) return "<root>";
   return path.map((p) => String(p.key)).join(".");
