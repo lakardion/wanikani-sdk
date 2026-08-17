@@ -197,6 +197,51 @@ const actors = await client.voiceActors.list();
 for (const env of actors.data) console.log(env.data.name, env.data.gender);
 ```
 
+## Composite helpers (`client.app`)
+
+A second tier beside the faithful resource namespaces (ADR-0003): app-level joins across resources. Every helper paginates fully under the hood — a call means "all matching pages", never page 1 — and batched `subjects?ids=…` / `*?subject_ids=…` lookups are chunked internally to stay under URL length limits.
+
+Filters are camelCase here (the resource tier stays snake_case) and each field maps to a server-side query param wherever one exists — `types` → `subject_types`, `srsStages` → `srs_stages`, `updatedAfter` → `updated_after`, `availableBefore` → `available_before`. The one documented exception is `reviewsDue`'s `limit`, which truncates the joined result client-side (there's no API equivalent).
+
+```ts
+// Everything I've started learning (assignments?started=true joined with subjects)
+const learned = await client.app.learnedSubjects({ types: ["kanji"], levels: [1, 2, 3] });
+
+// What can be learned right now
+const queue = await client.app.lessonQueue({ types: ["kanji"] });
+
+// Tonight's review session — reviewStatistic is null before the first review
+const due = await client.app.reviewsDue({ limit: 20 });
+// …or forecast: everything due by a timestamp
+const soon = await client.app.reviewsDue({ availableBefore: in24h });
+
+// The "learning card" for arbitrary subjects — at least one filter field is
+// REQUIRED (no fetch-all): subjectProgress({}) is a compile-time error.
+// assignment / reviewStatistic / studyMaterial join as null when absent.
+const cards = await client.app.subjectProgress({ slugs: ["suru", "life"] });
+
+// Current level standing + the kanji gate (assignment null = still locked)
+const status = await client.app.levelStatus(); // defaults to your current level
+
+// Login sync: parallel updated_after across the mutable resources
+const delta = await client.app.syncSince(lastLoginAt);
+save({ ...delta, lastLoginAt: delta.fetchedAt });
+// Only some resources? The result type carries only those keys:
+const partial = await client.app.syncSince(lastLoginAt, { resources: ["assignments"] });
+```
+
+### Change detection: the gate pattern
+
+Helpers take no validator (etag / `If-Modified-Since`) params — the composite tier stays validator-free per ADR-0005. To cheaply skip a join when nothing changed, put one resource-tier `list()` probe in front of the helper. Once per-resource conditional requests land (see [Conditional requests](#conditional-requests)), the probe is a conditional `list()` whose 304 (`WanikaniNotModified`) skips the helper entirely; today, an `updated_after` watermark probe serves the same role:
+
+```ts
+const probe = await client.assignments.list({ started: true, updated_after: lastSync });
+if (probe.data.length === 0) return cached; // nothing changed — skip the join
+const learned = await client.app.learnedSubjects();
+```
+
+For change detection proper, use the watermark flow: `syncSince(since)` → store the returned `fetchedAt` as the next `since`.
+
 ## Pagination
 
 WaniKani uses cursor-based pagination (`page_after_id` / `page_before_id`). Each `.list(...)` returns a single page; `.paginate(...)` returns an `AsyncGenerator` that walks the `pages.next_url` chain until exhaustion.
