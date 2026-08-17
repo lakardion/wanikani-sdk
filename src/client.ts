@@ -3,6 +3,9 @@ import { NullRateLimiter, TokenBucket, type RateLimiter } from "./http/rate-limi
 import { WanikaniError } from "./http/errors";
 import type { UnknownFieldsCallback, ValidatePolicy } from "./resources/validate";
 
+import { createWanikaniApp } from "./app/helpers";
+import type { WanikaniApp } from "./app/types";
+
 import { createUserResource } from "./resources/user";
 import { createSummaryResource } from "./resources/summary";
 import { createSubjectsResource } from "./resources/subjects";
@@ -39,6 +42,11 @@ export class WanikaniClient {
   readonly resets: ReturnType<typeof createResetsResource>;
   readonly spacedRepetitionSystems: ReturnType<typeof createSpacedRepetitionSystemsResource>;
   readonly voiceActors: ReturnType<typeof createVoiceActorsResource>;
+  /**
+   * Composite-helper tier (ADR-0003): app-level joins across resources.
+   * Visibly separate from the faithful resource namespaces above.
+   */
+  readonly app: WanikaniApp;
 
   constructor(options: WanikaniClientOptions = {}) {
     const apiKey = options.apiKey ?? readEnv("WANIKANI_API_KEY");
@@ -79,6 +87,7 @@ export class WanikaniClient {
     this.resets = createResetsResource(transport, validate);
     this.spacedRepetitionSystems = createSpacedRepetitionSystemsResource(transport, validate);
     this.voiceActors = createVoiceActorsResource(transport, validate);
+    this.app = createWanikaniApp(transport, validate);
   }
 }
 

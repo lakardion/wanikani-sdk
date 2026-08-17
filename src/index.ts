@@ -59,3 +59,23 @@ export type {
   VoiceActorCollection,
   ListVoiceActorsInput,
 } from "./schemas/voice-actor";
+
+export type {
+  WanikaniApp,
+  AssignmentScope,
+  LearnedSubject,
+  LearnedSubjectsFilter,
+  LessonQueueItem,
+  LessonQueueFilter,
+  ReviewDue,
+  ReviewsDueFilter,
+  SubjectProgress,
+  SubjectProgressFilter,
+  SubjectProgressFilterBase,
+  KanjiGateItem,
+  LevelStatus,
+  LevelStatusFilter,
+  SyncResource,
+  SyncResult,
+  SyncFilter,
+} from "./app/types";
