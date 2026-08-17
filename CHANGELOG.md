@@ -1,3 +1,10 @@
+# [0.5.0](https://github.com/lakardion/wanikani-sdk/compare/v0.4.0...v0.5.0) (2026-08-17)
+
+
+### Features
+
+* client.app composite helpers (learnedSubjects, lessonQueue, reviewsDue, subjectProgress, levelStatus, syncSince) ([#22](https://github.com/lakardion/wanikani-sdk/issues/22)) ([390e586](https://github.com/lakardion/wanikani-sdk/commit/390e5869013f13a915c457d6e381e961e74368b8))
+
 # [0.4.0](https://github.com/lakardion/wanikani-sdk/compare/v0.3.0...v0.4.0) (2026-08-16)
 
 ### Features
