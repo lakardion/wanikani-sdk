@@ -1,3 +1,19 @@
+# [1.0.0](https://github.com/lakardion/wanikani-sdk/compare/v0.5.0...v1.0.0) (2026-08-17)
+
+- feat!: conditional requests on resource methods (ETag/If-None-Match, 304 results) ([#21](https://github.com/lakardion/wanikani-sdk/issues/21)) ([766081e](https://github.com/lakardion/wanikani-sdk/commit/766081e462ce7afda69f7ed4a138e6af96a73c5d)), closes [#9](https://github.com/lakardion/wanikani-sdk/issues/9) [#19](https://github.com/lakardion/wanikani-sdk/issues/19)
+
+### BREAKING CHANGES
+
+- WanikaniNotModified is removed from the public API.
+  A 304 from a conditional request is now only surfaced as
+  { notModified: true } via ConditionalResponse (ADR-0004).
+
+- fix: unwrap TransportResult in levelStatus after main merge
+
+The helpers module was written against the pre-conditional-requests
+transport, where request() returned the bare body. Align the one direct
+call site with the unwrapBody() pattern used by the resources.
+
 # [0.5.0](https://github.com/lakardion/wanikani-sdk/compare/v0.4.0...v0.5.0) (2026-08-17)
 
 ### Features
